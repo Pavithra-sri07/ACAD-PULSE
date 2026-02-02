@@ -18,6 +18,10 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 db = SQLAlchemy(app)
 
+# --- IMPORTANT: create tables if not exist (Render) ---
+with app.app_context():
+    db.create_all()
+
 # =========================
 # Database Models
 # =========================
@@ -295,6 +299,11 @@ body{background:#f8fafc}
 .header h1{font-size:1.7rem;margin-bottom:0.4rem}
 .header p{font-size:0.95rem;opacity:0.9}
 
+stats{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:1.5rem;margin-bottom:2rem;
+}
 .stats{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
@@ -1560,7 +1569,7 @@ def admin_edit_reg_link(link_id):
     link.expiry_date = expiry
     db.session.commit()
     flash('Registration link updated successfully.', 'success')
-    return redirect('/admin#reglinks')
+    return redirect('/admin#reglinks']
 
 
 @app.route('/admin-deactivate-link/<int:link_id>', methods=['POST'])
@@ -1620,6 +1629,6 @@ def uploaded_file(filename):
 
 
 if __name__ == '__main__':
-    init_db()  # first run only; live DB irundha comment pannunga
+    # init_db()  # use only locally when you want to reset DB
     print("Run on: http://localhost:5000")
     app.run(debug=True, port=5000)
