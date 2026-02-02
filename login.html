@@ -1,0 +1,122 @@
+LOGIN_TEMPLATE = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACAD PULSE</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+        body{
+            background:linear-gradient(135deg,#667eea,#764ba2);
+            min-height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        .login-card{
+            background:white;
+            padding:3rem;
+            border-radius:20px;
+            box-shadow:0 20px 40px rgba(0,0,0,0.1);
+            width:100%;
+            max-width:400px;
+            text-align:center;
+        }
+        .main-title{
+            color:#111827;
+            margin-bottom:0.25rem;
+            font-size:2.4rem;
+            font-weight:700;
+            letter-spacing:1px;
+        }
+        .subtitle{
+            color:#6b7280;
+            font-size:0.95rem;
+            margin-bottom:2.2rem;
+        }
+        .form-group{
+            margin-bottom:1.5rem;
+            text-align:left;
+        }
+        .input-field{
+            width:100%;
+            padding:14px;
+            border:2px solid #e5e7eb;
+            border-radius:10px;
+            font-size:15px;
+            box-sizing:border-box;
+            background:#f9fafb;
+            color:#111827;
+            transition:border-color 0.18s, box-shadow 0.18s, background 0.18s;
+        }
+        .input-field:focus{
+            outline:none;
+            border-color:#6366f1;
+            box-shadow:0 0 0 3px rgba(99,102,241,0.18);
+            background:#ffffff;
+        }
+        .btn{
+            width:100%;
+            padding:14px;
+            background:#4f46e5;
+            color:white;
+            border:none;
+            border-radius:10px;
+            font-size:17px;
+            font-weight:600;
+            cursor:pointer;
+            transition:background 0.2s;
+            margin-top:0.5rem;
+        }
+        .btn:hover{
+            background:#4338ca;
+        }
+        .alert{
+            padding:12px 14px;
+            margin:0 0 1rem 0;
+            border-radius:10px;
+            border-left:4px solid #ef4444;
+            background:#fef2f2;
+            color:#b91c1c;
+            font-size:0.9rem;
+            text-align:left;
+        }
+    </style>
+</head>
+<body>
+<div class="login-card">
+    <div class="main-title">ACAD PULSE</div>
+    <div class="subtitle">Smart Academic Excellence Portal</div>
+
+    {% with messages=get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <div class="form-group">
+            <input type="text"
+                   name="user_id"
+                   class="input-field"
+                   placeholder="Username (ID) – ADMIN001 / CS001 / CA001"
+                   required>
+        </div>
+
+        <div class="form-group">
+            <input type="password"
+                   name="password"
+                   class="input-field"
+                   placeholder="Enter your password"
+                   required>
+        </div>
+
+        <button type="submit" class="btn">Login</button>
+    </form>
+</div>
+</body>
+</html>
+'''
