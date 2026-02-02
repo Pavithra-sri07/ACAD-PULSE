@@ -1292,6 +1292,18 @@ document.addEventListener('click', function(e){
 # Routes
 # =========================
 
+@app.route('/init-once')
+def init_once():
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
+        admin = User(user_id='ADMIN001', full_name='College Admin', role='admin')
+        admin.set_password('AdminPass2026')
+        db.session.add(admin)
+        db.session.commit()
+    return "DB initialized"
+
+
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -1632,4 +1644,5 @@ if __name__ == '__main__':
     # init_db()  # use only locally when you want to reset DB
     print("Run on: http://localhost:5000")
     app.run(debug=True, port=5000)
+
 
