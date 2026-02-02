@@ -1569,7 +1569,7 @@ def admin_edit_reg_link(link_id):
     link.expiry_date = expiry
     db.session.commit()
     flash('Registration link updated successfully.', 'success')
-    return redirect('/admin#reglinks']
+    return redirect('/admin#reglinks')
 
 
 @app.route('/admin-deactivate-link/<int:link_id>', methods=['POST'])
@@ -1632,3 +1632,4 @@ if __name__ == '__main__':
     # init_db()  # use only locally when you want to reset DB
     print("Run on: http://localhost:5000")
     app.run(debug=True, port=5000)
+
