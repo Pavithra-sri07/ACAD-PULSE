@@ -28,7 +28,8 @@ with app.app_context():
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(20), unique=True, nullable=False, index=True)
+    # full registration number OR ADMIN001
+    user_id = db.Column(db.String(30), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(128), nullable=False)
     full_name = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(20), default='student')
@@ -55,7 +56,7 @@ class Circular(db.Model):
 
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(20))
+    user_id = db.Column(db.String(30))
     feedback = db.Column(db.Text)
     rating = db.Column(db.Integer)
     date = db.Column(db.DateTime, default=datetime.utcnow)
@@ -105,30 +106,6 @@ def is_valid_url(url):
     return url_pattern.match(url) is not None
 
 
-def generate_student_id(dept, serial):
-    codes = {
-        'Computer Science': 'CS',
-        'Computer Application': 'CA',
-        'Maths': 'MT',
-        'Physics': 'PH',
-        'Chemistry': 'CH',
-        'Biotechnology': 'BT',
-        'Biochemistry': 'BC',
-        'Microbiology': 'MB',
-        'Tamil': 'TM',
-        'English': 'EN',
-        'BCom CA': 'BCA',
-        'BCom CS': 'BCS',
-        'BCom General': 'BCG',
-        'BBA': 'BBA',
-        'BBM': 'BBM',
-        'IT': 'IT',
-        'Data Science': 'DS',
-        'AI & ML': 'AI'
-    }
-    return f"{codes.get(dept, 'STU')}{int(serial):03d}"
-
-
 def init_db():
     with app.app_context():
         db.drop_all()
@@ -138,7 +115,6 @@ def init_db():
         db.session.add(admin)
         db.session.commit()
         print("ACAD PULSE database initialized with default admin.")
-
 
 # =========================
 # HTML TEMPLATES
@@ -246,7 +222,7 @@ LOGIN_TEMPLATE = '''<!DOCTYPE html>
             <input type="text"
                    name="user_id"
                    class="input-field"
-                   placeholder="Username"
+                   placeholder="Registration number / Admin ID"
                    required>
         </div>
 
@@ -299,11 +275,6 @@ body{background:#f8fafc}
 .header h1{font-size:1.7rem;margin-bottom:0.4rem}
 .header p{font-size:0.95rem;opacity:0.9}
 
-stats{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:1.5rem;margin-bottom:2rem;
-}
 .stats{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
@@ -372,7 +343,6 @@ stats{
 .reg-link-btn:hover{background:#0369a1}
 
 .no-data{text-align:center;padding:2.2rem;color:#9ca3af;font-size:0.9rem}
-
 @media(max-width:900px){
   .content-grid{grid-template-columns:1fr}
 }
@@ -1003,7 +973,7 @@ textarea{height:110px;resize:vertical}
             <input name="year" placeholder="Year (I / II / III / PG I / II)">
           </div>
           <div class="form-group">
-            <input name="serial" placeholder="Reg no. (001, 002 ...)" maxlength="3" required>
+            <input name="reg_no" placeholder="Registration number (full)" required>
           </div>
           <div class="form-group">
             <input type="password" name="password" placeholder="Password *" required>
@@ -1049,7 +1019,7 @@ textarea{height:110px;resize:vertical}
           <h3>Reset student password</h3>
           <form method="POST" action="/admin-reset-student-password" style="max-width:360px;">
             <div class="form-group">
-              <input name="student_id" placeholder="Student ID (e.g., CS001)" required>
+              <input name="student_id" placeholder="Registration number (full)" required>
             </div>
             <div class="form-group">
               <input type="password" name="new_password" placeholder="New password *" required>
@@ -1307,9 +1277,8 @@ def init_once():
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        user = User.query.filter_by(
-            user_id=request.form['user_id'].upper().strip()
-        ).first()
+        uid = request.form['user_id'].upper().strip()
+        user = User.query.filter_by(user_id=uid).first()
         if user and user.check_password(request.form['password']):
             session['user_id'] = user.user_id
             session['full_name'] = user.full_name
@@ -1420,22 +1389,26 @@ def admin():
 def create_student():
     if session.get('role') != 'admin':
         return redirect('/')
-    sid = generate_student_id(request.form['department'], request.form['serial'])
-    if not User.query.filter_by(user_id=sid).first():
-        student = User(
-            user_id=sid,
-            full_name=request.form['full_name'],
-            role='student',
-            department=request.form['department'],
-            year=request.form.get('year', ''),
-            section=request.form.get('section')
-        )
-        student.set_password(request.form['password'])
-        db.session.add(student)
-        db.session.commit()
-        flash(f'Student {sid} created successfully.', 'success')
-    else:
-        flash(f'ID {sid} already exists.', 'error')
+
+    # full registration number
+    reg_no = request.form['reg_no'].strip().upper()
+
+    if User.query.filter_by(user_id=reg_no).first():
+        flash(f"Registration number {reg_no} already exists.", 'error')
+        return redirect('/admin#students')
+
+    student = User(
+        user_id=reg_no,
+        full_name=request.form['full_name'],
+        role='student',
+        department=request.form['department'],
+        year=request.form.get('year', ''),
+        section=request.form.get('section')
+    )
+    student.set_password(request.form['password'])
+    db.session.add(student)
+    db.session.commit()
+    flash(f"Student {reg_no} created successfully.", 'success')
     return redirect('/admin#students')
 
 
@@ -1621,7 +1594,7 @@ def admin_reset_student_password():
     sid = request.form['student_id'].strip().upper()
     student = User.query.filter_by(user_id=sid, role='student').first()
     if not student:
-        flash('Student ID not found.', 'error')
+        flash('Registration number not found.', 'error')
         return redirect('/admin#students')
     student.set_password(request.form['new_password'])
     db.session.commit()
@@ -1644,5 +1617,3 @@ if __name__ == '__main__':
     # init_db()  # use only locally when you want to reset DB
     print("Run on: http://localhost:5000")
     app.run(debug=True, port=5000)
-
-
